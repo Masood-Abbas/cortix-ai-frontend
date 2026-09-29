@@ -3,6 +3,7 @@ import {
   LogOut,
   MessageSquare,
   PanelLeftIcon,
+  PanelRightIcon,
   PenSquare,
   Plus,
   User,
@@ -21,17 +22,18 @@ import { setUserData } from "../redux/userSlice";
 
 const SideBar = () => {
   const dispatch = useDispatch();
-  const { conversations=[], selectedConversation } = useSelector(
+
+  const { conversations = [], selectedConversation } = useSelector(
     (state) => state.conversation,
   );
+
   const { userData } = useSelector((state) => state.user);
 
-  console.log("userData" , userData)
   const [collapsed, setCollapsed] = useState(false);
   const [imageError, setImageError] = useState(false);
 
-
   const userId = userData?._id || userData?.user?._id;
+
   useEffect(() => {
     const getConv = async () => {
       const data = await getConversation();
@@ -39,61 +41,95 @@ const SideBar = () => {
     };
 
     getConv();
-  }, [userId]);
+  }, [userId, dispatch]);
 
   const handlecreateCon = async () => {
     const data = await createConversation();
     dispatch(addConversation(data));
   };
 
-  // avatar
   const avatar = userData?.avatar || userData?.user?.avatar;
+
   return (
-    <div className="fixed lg:static inset-y-0 left-0 z-50 w-67.5 h-screen shrink-0 bg-[#0d0f14] border-r border-white/6">
+    <div
+      className={`fixed lg:static inset-y-0 left-0 z-50 h-screen shrink-0 bg-[#0d0f14] border-r border-white/6 transition-all duration-450 ${
+        collapsed ? "w-16" : "w-67.5"
+      }`}
+    >
       <div className="flex flex-col h-full">
         {/* header */}
-        <div className="flex items-center gap-2.5 p-4 border-b border-white/6">
+        <div
+          className={`flex items-center gap-2.5 p-4 border-b border-white/6 ${
+            collapsed ? "justify-center" : ""
+          }`}
+        >
           <div
-            className="hidden lg:flex items-center justify-center w-7 h-7 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-white/5 transition-colors duration-150 bg-transparent border-none cursor-pointer"
-            onClick={() => setCollapsed(true)}
+            className=" flex items-center justify-center w-7 h-7 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-white/5 transition-colors duration-150 bg-transparent border-none cursor-pointer"
+            onClick={() => setCollapsed(!collapsed)}
           >
-            <PanelLeftIcon />
+           {collapsed?<PanelRightIcon size={16} /> :<PanelLeftIcon size={16} />}
           </div>
-          <span className="text-[16px] font-semibold text-slate-100 tracking-tight flex-1 lg:text-left!">
-            CortexAi
-          </span>
-          <span className="text-[10px] font-medium text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full tracking-wide">
-            Free
-          </span>
+
+          {!collapsed && (
+            <>
+              <span className="text-[16px] font-semibold text-slate-100 tracking-tight flex-1 text-left!">
+                CortexAi
+              </span>
+
+              <span className="text-[10px] font-medium text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full tracking-wide">
+                Free
+              </span>
+
+              <button
+                className="flex justify-center items-center w-7 h-7 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-white/5 transition-colors duration-150 bg-transparent border-none cursor-pointer"
+                onClick={handlecreateCon}
+              >
+                <PenSquare size={14} />
+              </button>
+            </>
+          )}
+        </div>
+
+        {/* new chat button */}
+        <div
+          className={`px-4 pt-4 pb-1 ${
+            collapsed ? "px-2" : ""
+          }`}
+        >
           <button
-            className="flex justify-center items-center  w-7 h-7 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-white/5 transition-colors duration-150 bg-transparent border-none cursor-pointer "
+            className={`w-full flex items-center justify-center gap-2 text-sm font-medium text-white bg-linear-to-br from-indigo-500 to-violet-700 rounded-xl py-2.5 border-none cursor-pointer hover:opacity-90 transition-opacity duration-150 ${
+              collapsed ? "px-0" : ""
+            }`}
             onClick={handlecreateCon}
+            title={collapsed ? "New Chat" : ""}
           >
-            <PenSquare size={14} />
+            <Plus size={18} />
+
+            {!collapsed && "New Chat"}
           </button>
         </div>
-        {/* newchat button */}
-        <div className="px-4 pt-4 pb-1">
-          <button
-            className="w-full flex items-center justify-center gap-2 text-sm font-medium text-white bg-linear-to-br from-indigo-500 to-violet-700 rounded-xl py-2.5 border-none cursor-pointer hover:opacity-90 transition-opacity duration-150"
-            onClick={handlecreateCon}
-          >
-            <Plus />
-            New Chat
-          </button>
-        </div>
-        {/*show all  conversation  */}
-        {conversations?.length == 0 ? (
-          <div className="px-5 pt-4 pb-1.5 text-[10.5px] font-semibold uppercase tracking-widest text-slate-600">
-            {" "}
-            No Recent Conversations
-          </div>
-        ) : (
-          <div className="px-5 pt-4 pb-1.5 text-[10.5px] font-semibold uppercase tracking-widest text-slate-600">
-            Recents
-          </div>
+
+        {/* recent heading */}
+        {!collapsed && (
+          <>
+            {conversations?.length == 0 ? (
+              <div className="px-5 pt-4 pb-1.5 text-[10.5px] font-semibold uppercase tracking-widest text-slate-600">
+                No Recent Conversations
+              </div>
+            ) : (
+              <div className="px-5 pt-4 pb-1.5 text-[10.5px] font-semibold uppercase tracking-widest text-slate-600">
+                Recents
+              </div>
+            )}
+          </>
         )}
-        <div className="flex-1 overflow-y-auto px-2.5 pb-2 scrollbar-none [&::-webkit-scrollbar]:hidden">
+
+        {/* conversations */}
+        <div
+          className={`flex-1 overflow-y-auto pb-2 scrollbar-none [&::-webkit-scrollbar]:hidden ${
+            collapsed ? "px-2.5 pt-3" : "px-2.5"
+          }`}
+        >
           {conversations.map((conv, i) => {
             const isActive = selectedConversation?._id == conv?._id;
 
@@ -101,27 +137,32 @@ const SideBar = () => {
               <div
                 key={conv?._id || i}
                 onClick={() => dispatch(setSelectedConversation(conv))}
+                title={collapsed ? conv?.title || "New Chat" : ""}
                 className={`flex items-center gap-2.5 cursor-pointer mb-0.5 px-3 py-2.5 rounded-[10px] border transition-colors duration-150 ${
                   isActive
                     ? "bg-indigo-500/10 border-indigo-500/18"
                     : "bg-transparent border-transparent"
-                }`}
+                } ${collapsed ? "justify-center px-0" : ""}`}
               >
                 <div
                   className={`flex items-center justify-center shrink-0 w-7 h-7 rounded-lg transition-colors duration-150 ${
                     isActive
-                      ? `bg-indigo-500/15 text-indigo-400`
-                      : `bg-white/5 text-slate-500`
+                      ? "bg-indigo-500/15 text-indigo-400"
+                      : "bg-white/5 text-slate-500"
                   }`}
                 >
                   <MessageSquare size={13} />
                 </div>
-                <span
-                  className={`text-[13px] font-medium turncate 
-                ${isActive ? "text-slate-100" : "text-slate-300"}`}
-                >
-                  {conv?.title || "New Chat"}
-                </span>
+
+                {!collapsed && (
+                  <span
+                    className={`text-[13px] font-medium truncate ${
+                      isActive ? "text-slate-100" : "text-slate-300"
+                    }`}
+                  >
+                    {conv?.title || "New Chat"}
+                  </span>
+                )}
               </div>
             );
           })}
@@ -130,17 +171,21 @@ const SideBar = () => {
         {/* footer */}
         <div className="mx-2.5 h-px bg-white/6" />
 
-        <div className="p-3.5">
+        <div className={`${collapsed ? "p-2" : "p-3.5"}`}>
           {userData ? (
-            <div className="flex items-center gap-2.5 cursor-pointer rounded-xl px-3 py-2.5 hover:bg-white/5 transition-colors duration-150">
+            <div
+              className={`flex items-center gap-2.5 cursor-pointer rounded-xl px-3 py-2.5 hover:bg-white/5 transition-colors duration-150 ${
+                collapsed ? "justify-center px-0" : ""
+              }`}
+            >
               {/* image */}
               <div className="relative shrink-0">
-                {avatar || !imageError ? (
+                {avatar && !imageError ? (
                   <div>
                     <img
                       className="w-9 h-9 rounded-[10px] object-cover border-2 border-indigo-500/25"
                       src={avatar}
-                      alt={userData.name}
+                      alt={userData?.name || "user"}
                       onError={() => setImageError(true)}
                     />
                   </div>
@@ -152,39 +197,62 @@ const SideBar = () => {
               </div>
 
               {/* name */}
-              <div className="flex-1 min-w-0 ">
-                <p className="text-[13.5px] font-semibold text-slate-100 truncate text-left">{userData?.name ||userData?.user?.name || "user"}</p>
-                <p className="text-[11px] text-slate-600 mt-px text-left ">Free Plan</p>
-              </div>
+              {!collapsed && (
+                <>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13.5px] font-semibold text-slate-100 truncate text-left">
+                      {userData?.name ||
+                        userData?.user?.name ||
+                        "user"}
+                    </p>
 
-              <div className="flex gap-1">
-                <button className="flex items-center justify-center w-7 h-7 rounded-[7px] border-none bg-transparent text-yellow-600 cursor-pointer hover:bg-white/8 hover:text-slate-400 transition-all duration-150">
-                  <Coins size={16}/>
-                </button >
-                <button className="flex items-center justify-center w-7 h-7 rounded-[7px] border-none bg-transparent text-slate-600 cursor-pointer hover:bg-white/8 hover:text-slate-400 transition-all duration-150"
-                onClick={()=>{
-                  logout()
-                  dispatch(setUserData(null))
-                }}
-                >
-                  <LogOut size={16}/>
-                </button>
-              </div>
+                    <p className="text-[11px] text-slate-600 mt-px text-left">
+                      Free Plan
+                    </p>
+                  </div>
 
+                  <div className="flex gap-1">
+                    <button
+                      className="flex items-center justify-center w-7 h-7 rounded-[7px] border-none bg-transparent text-yellow-600 cursor-pointer hover:bg-white/8 hover:text-slate-400 transition-all duration-150"
+                    >
+                      <Coins size={16} />
+                    </button>
+
+                    <button
+                      className="flex items-center justify-center w-7 h-7 rounded-[7px] border-none bg-transparent text-slate-600 cursor-pointer hover:bg-white/8 hover:text-slate-400 transition-all duration-150"
+                      onClick={() => {
+                        logout();
+                        dispatch(setUserData(null));
+                      }}
+                    >
+                      <LogOut size={16} />
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {/* logout when collapsed */}
+              {collapsed && (
+                <button
+                  className="hidden"
+                  onClick={() => {
+                    logout();
+                    dispatch(setUserData(null));
+                  }}
+                />
+              )}
             </div>
           ) : (
-            <button className="w-full flex item-center justify-center gap-2 text-sm font-medium text-slate-200 bg-white/5 border border-white/8 rounded-xl py-2.75 cursor-pointer hover:bg-white/8 transition-colors duration-150">
-              Login
-            </button>
+            !collapsed && (
+              <button className="w-full flex item-center justify-center gap-2 text-sm font-medium text-slate-200 bg-white/5 border border-white/8 rounded-xl py-2.75 cursor-pointer hover:bg-white/8 transition-colors duration-150">
+                Login
+              </button>
+            )
           )}
         </div>
       </div>
     </div>
-    
   );
-
-  
-
 };
 
 export default SideBar;
