@@ -1,9 +1,10 @@
 import { MessageSquare } from "lucide-react";
 import { useSelector } from "react-redux";
+import { selectMessages } from "../redux/messageSlice.js";
 
 const NavChat = () => {
   const { selectedConversation } = useSelector((state) => state.conversation);
-  const { messages } = useSelector((state) => state.message);
+  const messages = useSelector(selectMessages);
   return (
     <>
     {selectedConversation && 

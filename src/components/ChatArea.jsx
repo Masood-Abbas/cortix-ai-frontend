@@ -3,27 +3,21 @@ import ChatInput from "./ChatInput";
 import MessageList from "./MessageList";
 import NavChat from "./NavChat";
 import { useDispatch, useSelector } from "react-redux";
-import { getMessages } from "../../features/getMessages";
-import { setMessages } from "../redux/messageSlice";
+import { loadMessages } from "../../features/chatActions.js";
 
 const ChatArea = () => {
-  const { selectedConversation } = useSelector((state) => state.conversation);
+  const id = useSelector((state) => state.conversation.selectedConversation?._id);
   const dispatch = useDispatch();
   useEffect(() => {
-    const getMesg = async () => {
-      if (selectedConversation) {
-        const data = await getMessages(selectedConversation?._id);
-        dispatch(setMessages(data));
-        console.log("mesages start")
-      }
-    };
-    getMesg()
-  }, [selectedConversation, dispatch]);
+    if (!id) return;
+    const request = dispatch(loadMessages(id));
+    return () => request.abort();
+  }, [id, dispatch]);
   return (
-    <div className="flex-1 flex flex-col">
+    <div className="flex-1 min-h-0 min-w-0 flex flex-col">
       <NavChat />
       <MessageList />
-      <ChatInput />
+      <ChatInput key={id || "new-chat"} />
     </div>
   );
 };

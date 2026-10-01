@@ -1,10 +1,6 @@
-import api from "../utils/axios"
+import api from "../utils/axios.js";
 
-export const getConversation=async () => {
-    try {
-        const {data}= await api.get("/chat/get-conversation")
-        return data
-    } catch (error) {
-        console.log(error)
-    }
-}
+export const getConversation = async (signal) => {
+  const { data } = await api.get("/chat/get-conversation", { signal });
+  return data;
+};

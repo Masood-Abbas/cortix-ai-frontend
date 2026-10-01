@@ -12,11 +12,9 @@ import { useEffect, useState } from "react";
 import { getConversation } from "../../features/getConversations";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  addConversation,
   setConversations,
   setSelectedConversation,
 } from "../redux/conversationSlice";
-import { createConversation } from "../../features/createConverstion";
 import { logout } from "../../features/logout";
 import { setUserData } from "../redux/userSlice";
 
@@ -31,22 +29,47 @@ const SideBar = () => {
 
   const [collapsed, setCollapsed] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [listError, setListError] = useState(null);
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      await logout();
+      dispatch(setUserData(null));
+    } catch {
+      setListError("Logout failed. Please try again.");
+    } finally {
+      setLoggingOut(false);
+    }
+  };
 
   const userId = userData?._id || userData?.user?._id;
 
   useEffect(() => {
+    if (!userId) return;
+    const controller = new AbortController();
     const getConv = async () => {
-      const data = await getConversation();
-      dispatch(setConversations(data));
+      try {
+        const data = await getConversation(controller.signal);
+        if (!controller.signal.aborted) {
+          dispatch(setConversations(data));
+          setListError(null);
+        }
+      } catch {
+        if (!controller.signal.aborted) setListError("Could not load recent chats.");
+      }
     };
 
     getConv();
+    return () => controller.abort();
   }, [userId, dispatch]);
 
-  const handlecreateCon = async () => {
-    const data = await createConversation();
-    dispatch(addConversation(data));
-  };
+  // const handlecreateCon = async () => {
+  //   const data = await createConversation();
+  //   dispatch(addConversation(data));
+  // };
 
   const avatar = userData?.avatar || userData?.user?.avatar;
 
@@ -82,7 +105,7 @@ const SideBar = () => {
 
               <button
                 className="flex justify-center items-center w-7 h-7 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-white/5 transition-colors duration-150 bg-transparent border-none cursor-pointer"
-                onClick={handlecreateCon}
+                 onClick={()=>dispatch(setSelectedConversation(null))}
               >
                 <PenSquare size={14} />
               </button>
@@ -100,7 +123,7 @@ const SideBar = () => {
             className={`w-full flex items-center justify-center gap-2 text-sm font-medium text-white bg-linear-to-br from-indigo-500 to-violet-700 rounded-xl py-2.5 border-none cursor-pointer hover:opacity-90 transition-opacity duration-150 ${
               collapsed ? "px-0" : ""
             }`}
-            onClick={handlecreateCon}
+            onClick={()=>dispatch(setSelectedConversation(null))}
             title={collapsed ? "New Chat" : ""}
           >
             <Plus size={18} />
@@ -130,6 +153,7 @@ const SideBar = () => {
             collapsed ? "px-2.5 pt-3" : "px-2.5"
           }`}
         >
+          {listError && <p role="alert" className="px-3 text-xs text-red-400">{listError}</p>}
           {conversations.map((conv, i) => {
             const isActive = selectedConversation?._id == conv?._id;
 
@@ -220,10 +244,8 @@ const SideBar = () => {
 
                     <button
                       className="flex items-center justify-center w-7 h-7 rounded-[7px] border-none bg-transparent text-slate-600 cursor-pointer hover:bg-white/8 hover:text-slate-400 transition-all duration-150"
-                      onClick={() => {
-                        logout();
-                        dispatch(setUserData(null));
-                      }}
+                      disabled={loggingOut}
+                      onClick={handleLogout}
                     >
                       <LogOut size={16} />
                     </button>
@@ -234,12 +256,11 @@ const SideBar = () => {
               {/* logout when collapsed */}
               {collapsed && (
                 <button
-                  className="hidden"
-                  onClick={() => {
-                    logout();
-                    dispatch(setUserData(null));
-                  }}
-                />
+                  title="Log out"
+                  aria-label="Log out"
+                  disabled={loggingOut}
+                  onClick={handleLogout}
+                ><LogOut size={14} /></button>
               )}
             </div>
           ) : (

@@ -1,6 +1,6 @@
 import { useSelector } from "react-redux";
-import GoogleLogin from "../../components/login";
-import SideBar from "../../components/sidebar";
+import GoogleLogin from "../../components/Login";
+import SideBar from "../../components/SideBar";
 import ChatArea from "../../components/ChatArea";
 import Artifact from "../../components/Artifact";
 

@@ -1,13 +1,16 @@
-import api from "../utils/axios"
+import api from "../utils/axios.js";
 
 const sendMessage = async (payload) => {
-  try {
-    const {data}=await api.post("/agent/chat",payload)
-    return data
-  } catch (error) {
-    console.log(error)
-    return null
+  const { data } = await api.post("/agent/chat", payload);
+  if (typeof data === "string") return { content: data, images: [] };
+  if (data && typeof data === "object") {
+    return {
+      content: data.answer || data.awnser || data.content || "",
+      images: Array.isArray(data.images) ? data.images : [],
+      artifacts: Array.isArray(data.artifacts) ? data.artifacts : [],
+    };
   }
-}
+  return data;
+};
 
-export default sendMessage
+export default sendMessage;
