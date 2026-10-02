@@ -1,4 +1,4 @@
-import { Check, Code2, Copy, ExternalLink, X } from "lucide-react";
+import { Check, Code2, Copy, Download, ExternalLink, X } from "lucide-react";
 import { useState } from "react";
 import Markdown from "react-markdown";
 import remarkGFM from "remark-gfm";
@@ -29,6 +29,29 @@ const MessageBubble = ({
     setTimeout(() => {
       setCopyCode(null);
     }, 2000);
+  };
+
+  const downloadImage = async (src) => {
+    const fileName = `generated-image-${Date.now()}.webp`;
+    try {
+      const response = await fetch(src);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      const link = document.createElement("a");
+      link.href = src;
+      link.download = fileName;
+      link.target = "_blank";
+      link.rel = "noreferrer";
+      link.click();
+    }
   };
 
   return (
@@ -140,6 +163,18 @@ const MessageBubble = ({
                 </div>
               );
             },
+            img:({src})=>{
+              if(!src) return null;
+              return(
+                <img
+                src={src}
+                onClick={()=>setLightbox(src)}
+                loading="lazy"
+                onError={(e)=>e.currentTarget.remove()}
+                className="w-40 h-28 rounded-xl object-cover border border-white/10 cursor-zoom-in "
+                />
+              )
+            }
           }}
         >
           {content}
@@ -147,12 +182,9 @@ const MessageBubble = ({
         {visibleImages.length > 0 && (
           <div className="mt-3 grid grid-cols-2 gap-2">
             {visibleImages.map((src, index) => (
-              <a
+              <div
                 key={`${src}-${index}`}
-                // href={src}
-                target="_blank"
-                rel="noreferrer"
-                className="block overflow-hidden rounded-lg border border-white/10"
+                className="group relative overflow-hidden rounded-lg border border-white/10"
               >
                 <img
                   src={src}
@@ -165,7 +197,19 @@ const MessageBubble = ({
                   loading="lazy"
                   className="h-28 w-full object-cover"
                 />
-              </a>
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    downloadImage(src);
+                  }}
+                  title="Download image"
+                  aria-label="Download image"
+                  className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-lg bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100 hover:bg-black/80"
+                >
+                  <Download size={15} />
+                </button>
+              </div>
             ))}
           </div>
         )}
@@ -188,6 +232,14 @@ const MessageBubble = ({
             className="absolute top-5 right-5 text-white/80 hover:text-white bg-white/10 rounded-full p-2"
           >
             <X />
+          </button>
+          <button
+            onClick={() => downloadImage(lightBox)}
+            className="absolute top-5 right-17 text-white/80 hover:text-white bg-white/10 rounded-full p-2"
+            title="Download image"
+            aria-label="Download image"
+          >
+            <Download />
           </button>
           <img
             src={lightBox}
