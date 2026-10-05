@@ -64,6 +64,7 @@ export const sendChatMessage = createAsyncThunk(
       content,
       images: Array.isArray(response?.images) ? response.images : [],
       artifacts: Array.isArray(response?.artifacts) ? response.artifacts : [],
+      files: Array.isArray(response?.files) ? response.files : [],
     };
   },
   {

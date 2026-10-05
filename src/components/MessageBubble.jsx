@@ -10,6 +10,7 @@ const MessageBubble = ({
   content,
   images = [],
   artifacts = [],
+  files = [],
   onSelectArtifact,
 }) => {
   const isUser = role === "user";
@@ -18,6 +19,9 @@ const MessageBubble = ({
     : [];
   const visibleImages = Array.isArray(images)
     ? images.filter(Boolean).slice(0, 4)
+    : [];
+  const visibleFiles = Array.isArray(files)
+    ? files.filter((file) => file?.url)
     : [];
   const [lightBox, setLightbox] = useState(null);
 
@@ -222,6 +226,23 @@ const MessageBubble = ({
             <Code2 size={14} />
             Show code preview
           </button>
+        )}
+        {visibleFiles.length > 0 && (
+          <div className="mt-3 space-y-2">
+            {visibleFiles.map((file, index) => (
+              <a
+                key={`${file.url}-${index}`}
+                href={file.url}
+                target="_blank"
+                rel="noreferrer"
+                download={file.name || true}
+                className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium text-slate-200 hover:bg-white/10 transition-colors"
+              >
+                <Download size={14} />
+                <span className="truncate">{file.name || "Download file"}</span>
+              </a>
+            ))}
+          </div>
         )}
       </div>
 

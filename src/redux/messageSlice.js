@@ -59,7 +59,7 @@ const messageSlice = createSlice({
     })
     .addCase(sendChatMessage.fulfilled, (state, { payload, meta }) => {
       if (state.sendRequestId !== meta.requestId) return;
-      record(state, payload.conversationId).items.push({ role: "assistant", content: payload.content, images: payload.images || [], artifacts: payload.artifacts || [] });
+      record(state, payload.conversationId).items.push({ role: "assistant", content: payload.content, images: payload.images || [], artifacts: payload.artifacts || [], files: payload.files || [] });
       state.sendRequestId = null;
       state.sendConversationId = null;
     })

@@ -8,6 +8,7 @@ const sendMessage = async (payload) => {
       content: data.answer || data.awnser || data.content || "",
       images: Array.isArray(data.images) ? data.images : [],
       artifacts: Array.isArray(data.artifacts) ? data.artifacts : [],
+      files: Array.isArray(data.files) ? data.files : [],
     };
   }
   return data;

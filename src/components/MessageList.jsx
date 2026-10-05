@@ -59,6 +59,7 @@ const MessageList = () => {
                 content={msg?.content}
                 images={msg?.images}
                 artifacts={msg?.artifacts}
+                files={msg?.files}
                 onSelectArtifact={(artifactId) =>
                   dispatch(setSelectedArtifact(artifactId))
                 }
