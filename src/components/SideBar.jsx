@@ -17,6 +17,7 @@ import {
 } from "../redux/conversationSlice";
 import { logout } from "../../features/logout";
 import { setUserData } from "../redux/userSlice";
+import BillingDrawer from "./BillingDrawer";
 
 const SideBar = () => {
   const dispatch = useDispatch();
@@ -31,6 +32,8 @@ const SideBar = () => {
   const [imageError, setImageError] = useState(false);
   const [listError, setListError] = useState(null);
   const [loggingOut, setLoggingOut] = useState(false);
+
+  const [showBilling,setShowBilling]=useState(false)
 
   const handleLogout = async () => {
     if (loggingOut) return;
@@ -237,6 +240,7 @@ const SideBar = () => {
 
                   <div className="flex gap-1">
                     <button
+                    onClick={()=>setShowBilling(true)}
                       className="flex items-center justify-center w-7 h-7 rounded-[7px] border-none bg-transparent text-yellow-600 cursor-pointer hover:bg-white/8 hover:text-slate-400 transition-all duration-150"
                     >
                       <Coins size={16} />
@@ -272,6 +276,10 @@ const SideBar = () => {
           )}
         </div>
       </div>
+      <BillingDrawer
+      open={showBilling}
+      onClose={()=>setShowBilling(false)}
+      />
     </div>
   );
 };
