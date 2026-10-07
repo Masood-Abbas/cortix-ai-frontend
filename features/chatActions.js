@@ -8,6 +8,7 @@ import {
   setConvTitle,
   setSelectedConversation,
 } from "../src/redux/conversationSlice.js";
+import { setUserData } from "../src/redux/userSlice.js";
 
 export const messageQueued = createAction("message/queued");
 
@@ -59,6 +60,7 @@ export const sendChatMessage = createAsyncThunk(
     const content = typeof response === "string" ? response : response?.content;
     if (typeof content !== "string" || !content.trim())
       throw new Error("Empty response");
+    if (response?.user) dispatch(setUserData(response.user));
     return {
       conversationId,
       content,

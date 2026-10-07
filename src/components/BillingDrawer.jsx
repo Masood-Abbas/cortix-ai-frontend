@@ -1,9 +1,27 @@
 import { Crown, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useSelector } from "react-redux";
+import { useState } from "react";
+import { createBillingOrder } from "../../features/createBillingOrder.js";
+
 const BillingDrawer = ({ open, onClose }) => {
   const { userData } = useSelector((state) => state.user);
-  console.log(userData);
+  const [loadingPlan, setLoadingPlan] = useState(null);
+  const [error, setError] = useState("");
+
+  const handleUpgrade = async (plan) => {
+    if (loadingPlan) return;
+    setLoadingPlan(plan);
+    setError("");
+    try {
+      const order = await createBillingOrder(plan);
+      window.location.assign(order.checkoutUrl);
+    } catch (err) {
+      setError(err?.response?.data?.message || "Could not start checkout. Please try again.");
+      setLoadingPlan(null);
+    }
+  };
+
   return (
     <AnimatePresence>
       {open && (
@@ -72,11 +90,22 @@ const BillingDrawer = ({ open, onClose }) => {
             {/* cards */}
 
             <div className="px-5 flex-1 overflow-auto space-y-4">
+              {error && (
+                <p role="alert" className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-xs text-red-300">
+                  {error}
+                </p>
+              )}
                 <div className ="rounded-xl border border-white/10 p-4 text-left">
                 <h3 className="text-white font-semibold ">Starter Pan</h3>
                 <p className="text-indigo-400 text-2xl font-bold mt-2">$199</p>
                 <p className="text-slate-400 text-sm mt-1">500 Credits</p>
-                <button className="mt-3 w-full rounded-lg bg-indigo-600 hover:bg-indigo-700 py-2 text-white">Upgrade</button>
+                <button
+                  onClick={() => handleUpgrade("starter")}
+                  disabled={Boolean(loadingPlan)}
+                  className="mt-3 w-full rounded-lg bg-indigo-600 hover:bg-indigo-700 py-2 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loadingPlan === "starter" ? "Opening checkout..." : "Upgrade"}
+                </button>
                 </div>
 
             </div>
@@ -86,7 +115,13 @@ const BillingDrawer = ({ open, onClose }) => {
                 <h3 className="text-white font-semibold ">Pro Pan</h3>
                 <p className="text-indigo-400 text-2xl font-bold mt-2">$500</p>
                 <p className="text-slate-400 text-sm mt-1">1000 Credits</p>
-                <button className="mt-3 w-full rounded-lg bg-indigo-600 hover:bg-indigo-700 py-2 text-white">Upgrade</button>
+                <button
+                  onClick={() => handleUpgrade("pro")}
+                  disabled={Boolean(loadingPlan)}
+                  className="mt-3 w-full rounded-lg bg-indigo-600 hover:bg-indigo-700 py-2 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loadingPlan === "pro" ? "Opening checkout..." : "Upgrade"}
+                </button>
                 </div>
 
             </div>
