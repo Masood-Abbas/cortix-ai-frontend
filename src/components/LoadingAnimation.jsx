@@ -31,7 +31,7 @@ const LoadingAnimation = () => {
         ))}
 
         <motion.span
-          className="block w-2.5 h-2.5 rounded-full bg-gradient-to-br from-cyan-300 to-violet-400"
+          className="block w-2.5 h-2.5 rounded-full bg-linear-to-br from-cyan-300 to-violet-400"
           style={{
             boxShadow: "0 0 14px rgba(125, 211, 252, 0.8)",
           }}

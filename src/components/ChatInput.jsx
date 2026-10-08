@@ -1,4 +1,4 @@
-import { FileText, Mic, Paperclip, Send, X } from "lucide-react";
+import { FileText, Paperclip, Send, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { sendChatMessage } from "../../features/chatActions.js";
@@ -136,11 +136,11 @@ const ChatInput = () => {
               onClick={()=>fileRef.current.click()}>
               <Paperclip size={16} />
             </button>
-            <button
+            {/* <button
               className="p-2  cursor-pointer flex items-center justify-center w-8 h-8 rounded-lg text-slate-600 hover:text-slate-400 hover:bg-white/5 border border-transparent hover:border-white/6 transition-all duration-150 bg-transparent"
             >
               <Mic size={16} />
-            </button>
+            </button> */}
           </div>
           <button
             onClick={handleSendMessage}

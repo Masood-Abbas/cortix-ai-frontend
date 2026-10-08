@@ -88,7 +88,7 @@ const SideBar = ({ mobileOpen = false, onMobileClose }) => {
         />
       )}
       <div
-        className={`fixed lg:static inset-y-0 left-0 z-50 h-[100svh] shrink-0 bg-[#0d0f14] border-r border-white/6 transition-all duration-300 ${
+        className={`fixed lg:static inset-y-0 left-0 z-50 h-svh shrink-0 bg-[#0d0f14] border-r border-white/6 transition-all duration-300 ${
           collapsed ? "w-16" : "w-67.5"
         } ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
