@@ -27,7 +27,7 @@ export const loadMessages = createAsyncThunk(
 
 export const sendChatMessage = createAsyncThunk(
   "message/send",
-  async ({ prompt, conversationId ,agent}, { dispatch, getState, requestId }) => {
+  async ({ prompt, conversationId ,agent,file}, { dispatch, getState, requestId }) => {
     const { selectionVersion, sessionVersion } = getState().conversation;
     const isCurrentSession = () =>
       getState().conversation.sessionVersion === sessionVersion;
@@ -40,7 +40,7 @@ export const sendChatMessage = createAsyncThunk(
       dispatch(addConversation(conversation));
     }
     if (!isCurrentSession()) throw new Error("Session changed");
-    dispatch(messageQueued({ conversationId, prompt, requestId }));
+    dispatch(messageQueued({ conversationId, prompt, requestId, file }));
     if (getState().conversation.selectionVersion === selectionVersion) {
       dispatch(setSelectedConversation(conversation));
     }
@@ -56,7 +56,7 @@ export const sendChatMessage = createAsyncThunk(
       }
     }
     if (!isCurrentSession()) throw new Error("Session changed");
-    const response = await sendMessage({ prompt, conversationId,agent });
+    const response = await sendMessage({ prompt, conversationId,agent,file });
     const content = typeof response === "string" ? response : response?.content;
     if (typeof content !== "string" || !content.trim())
       throw new Error("Empty response");
@@ -70,10 +70,10 @@ export const sendChatMessage = createAsyncThunk(
     };
   },
   {
-    condition: ({ prompt, conversationId }, { getState }) => {
+    condition: ({ prompt, conversationId, file }, { getState }) => {
       const state = getState();
       return (
-        Boolean(prompt?.trim()) &&
+        (Boolean(prompt?.trim()) || Boolean(file)) &&
         Boolean(state.user.userData) &&
         !state.message.sendRequestId &&
         !state.message.byConversation[conversationId]?.loading &&

@@ -4,6 +4,15 @@ import { getUserId, setUserData } from "./userSlice.js";
 
 const initialState = { byConversation: {}, sendRequestId: null, sendConversationId: null, error: null, ownerId: null, selectedArtifactId: null };
 const record = (state, id) => state.byConversation[id] ??= { items: [], loading: false, error: null, requestId: null };
+const createLocalAttachment = (file) => {
+  if (!file?.name) return null;
+  return {
+    name: file.name,
+    type: file.type || "",
+    url: URL.createObjectURL(file),
+    local: true,
+  };
+};
 
 const messageSlice = createSlice({
   name: "message",
@@ -55,7 +64,12 @@ const messageSlice = createSlice({
       const chat = record(state, payload.conversationId);
       chat.requestId = null;
       chat.loading = false;
-      chat.items.push({ role: "user", content: payload.prompt });
+      const attachment = createLocalAttachment(payload.file);
+      chat.items.push({
+        role: "user",
+        content: payload.prompt || attachment?.name || "",
+        attachments: attachment ? [attachment] : [],
+      });
     })
     .addCase(sendChatMessage.fulfilled, (state, { payload, meta }) => {
       if (state.sendRequestId !== meta.requestId) return;

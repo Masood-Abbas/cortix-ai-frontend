@@ -11,6 +11,7 @@ const MessageBubble = ({
   images = [],
   artifacts = [],
   files = [],
+  attachments = [],
   onSelectArtifact,
 }) => {
   const isUser = role === "user";
@@ -23,6 +24,12 @@ const MessageBubble = ({
   const visibleFiles = Array.isArray(files)
     ? files.filter((file) => file?.url)
     : [];
+  const visibleAttachments = Array.isArray(attachments)
+    ? attachments.filter((file) => file?.url)
+    : [];
+  const messageAttachments = isUser
+    ? [...visibleAttachments, ...visibleFiles]
+    : visibleAttachments;
   const [lightBox, setLightbox] = useState(null);
 
   const [copyCode, setCopyCode] = useState("");
@@ -183,6 +190,38 @@ const MessageBubble = ({
         >
           {content}
         </Markdown>
+        {messageAttachments.length > 0 && (
+          <div className="mt-3 space-y-2">
+            {messageAttachments.map((file, index) =>
+              file.type?.startsWith("image/") ? (
+                <button
+                  key={`${file.url}-${index}`}
+                  type="button"
+                  onClick={() => setLightbox(file.url)}
+                  className="block overflow-hidden rounded-xl border border-white/15 bg-black/10"
+                >
+                  <img
+                    src={file.url}
+                    alt={file.name || "Attached image"}
+                    className="max-h-56 max-w-full object-contain"
+                  />
+                </button>
+              ) : (
+                <a
+                  key={`${file.url}-${index}`}
+                  href={file.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  download={file.name || true}
+                  className="flex items-center gap-2 rounded-lg border border-white/15 bg-black/10 px-3 py-2 text-xs font-medium text-white hover:bg-white/10 transition-colors"
+                >
+                  <Download size={14} />
+                  <span className="truncate">{file.name || "Attached file"}</span>
+                </a>
+              ),
+            )}
+          </div>
+        )}
         {visibleImages.length > 0 && (
           <div className="mt-3 grid grid-cols-2 gap-2">
             {visibleImages.map((src, index) => (
@@ -227,7 +266,7 @@ const MessageBubble = ({
             Show code preview
           </button>
         )}
-        {visibleFiles.length > 0 && (
+        {!isUser && visibleFiles.length > 0 && (
           <div className="mt-3 space-y-2">
             {visibleFiles.map((file, index) => (
               <a

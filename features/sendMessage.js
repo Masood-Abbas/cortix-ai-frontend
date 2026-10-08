@@ -1,7 +1,21 @@
 import api from "../utils/axios.js";
 
 const sendMessage = async (payload) => {
-  const { data } = await api.post("/agent/chat", payload);
+
+  console.log("payload",payload)
+  const hasFile =
+    payload?.file instanceof File ||
+    payload?.file instanceof Blob ||
+    Boolean(payload?.file?.name);
+  const body = hasFile ? new FormData() : payload;
+  if (hasFile) {
+    body.append("prompt", payload.prompt || "");
+    body.append("conversationId", payload.conversationId || "");
+    body.append("agent", payload.agent || "auto");
+    body.append("file", payload.file);
+  }
+
+  const { data } = await api.post("/agent/chat", body);
   if (typeof data === "string") return { content: data, images: [] };
   if (data && typeof data === "object") {
     return {

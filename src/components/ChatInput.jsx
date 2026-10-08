@@ -1,5 +1,5 @@
-import { Mic, Paperclip, Send } from "lucide-react";
-import { useRef, useState } from "react";
+import { FileText, Mic, Paperclip, Send, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { sendChatMessage } from "../../features/chatActions.js";
 import { agentsList } from "../../utils/staticData/agents.jsx";
@@ -24,12 +24,31 @@ const ChatInput = () => {
   const dispatch = useDispatch();
   const disabled =
     !user || Boolean(sendRequestId) || Boolean(chat?.loading || chat?.error);
+  const isSelectedImage = selectedFile?.type?.startsWith("image/");
+  const previewUrl = useMemo(
+    () => (selectedFile && isSelectedImage ? URL.createObjectURL(selectedFile) : ""),
+    [selectedFile, isSelectedImage],
+  );
+
+  useEffect(() => {
+    if (!previewUrl) return undefined;
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [previewUrl]);
+
+  const clearSelectedFile = () => {
+    setSelectedFile(null);
+    if (fileRef.current) fileRef.current.value = "";
+  };
 
   const handleSendMessage = async () => {
     const prompt = value.trim();
-    if (!prompt || disabled) return;
-    const result = await dispatch(sendChatMessage({ prompt, conversationId,agent:selectedAgent.toLowerCase() }));
-    if (sendChatMessage.fulfilled.match(result)) setValue("");
+    const attachedFile = selectedFile || fileRef.current?.files?.[0] || null;
+    if ((!prompt && !attachedFile) || disabled) return;
+    const result = await dispatch(sendChatMessage({ prompt, conversationId,agent:selectedAgent.toLowerCase(), file:attachedFile }));
+    if (sendChatMessage.fulfilled.match(result)) {
+      setValue("");
+      clearSelectedFile();
+    }
   };
 
   return (
@@ -65,6 +84,38 @@ const ChatInput = () => {
           })}
         </div>
 
+        {selectedFile && (
+          <div className="flex items-center gap-3 rounded-xl border border-white/8 bg-black/20 px-3 py-2">
+            {isSelectedImage && previewUrl ? (
+              <img
+                src={previewUrl}
+                alt={selectedFile.name}
+                className="h-12 w-12 rounded-lg object-cover border border-white/10"
+              />
+            ) : (
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-indigo-300">
+                <FileText size={22} />
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm text-slate-200">
+                {selectedFile.name}
+              </p>
+              <p className="text-xs text-slate-500">
+                {isSelectedImage ? "Image selected" : "File selected"}
+              </p>
+            </div>
+            <button
+              type="button"
+              title="Remove attachment"
+              onClick={clearSelectedFile}
+              className="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 hover:bg-white/8 hover:text-slate-200"
+            >
+              <X size={15} />
+            </button>
+          </div>
+        )}
+
         {/* text-area */}
         <textarea
           placeholder="Ask Anything..."
@@ -96,7 +147,7 @@ const ChatInput = () => {
           </div>
           <button
             onClick={handleSendMessage}
-            disabled={disabled || !value.trim()}
+            disabled={disabled || (!value.trim() && !selectedFile)}
             aria-label="Send message"
             className="flex items-center justify-center w-8 h-8 rounded-lg border-none cursor-pointer transition-all duration-150 bg-linear-to-br from-indigo-500 to-violet-700 text-white/80 disabled:opacity-40 disabled:cursor-not-allowed"
           >
