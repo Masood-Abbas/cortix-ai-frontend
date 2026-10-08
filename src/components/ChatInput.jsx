@@ -1,5 +1,5 @@
 import { Mic, Paperclip, Send } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { sendChatMessage } from "../../features/chatActions.js";
 import { agentsList } from "../../utils/staticData/agents.jsx";
@@ -7,6 +7,10 @@ import { agentsList } from "../../utils/staticData/agents.jsx";
 const ChatInput = () => {
   const [value, setValue] = useState("");
   const [selectedAgent, setSelectedAgent] = useState("Auto");
+
+  const [selectedFile,setSelectedFile]=useState(null)
+
+  const fileRef=useRef(null)
 
   const conversationId = useSelector(
     (state) => state.conversation.selectedConversation?._id,
@@ -72,17 +76,20 @@ const ChatInput = () => {
         />
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1">
+          <input type="file" accept='.pdf,image/*' hidden ref={fileRef} onChange={(e)=>{ const file = e.target.files[0]
+            if(file){
+              setSelectedFile(file)
+            }
+          }}/>
             <button
-              disabled
-              title="Attachments are not available yet"
-              className="p-2 text-slate-600"
-            >
+              title="Attachments are  available t"
+              className="p-2  cursor-pointer flex items-center justify-center w-8 h-8 rounded-lg text-slate-600 hover:text-slate-400 hover:bg-white/5 border border-transparent hover:border-white/6 transition-all duration-150 bg-transparent" 
+              onClick={()=>fileRef.current.click()}>
               <Paperclip size={16} />
             </button>
             <button
-              disabled
               title="Voice input is not available yet"
-              className="p-2 text-slate-600"
+              className="p-2  cursor-pointer flex items-center justify-center w-8 h-8 rounded-lg text-slate-600 hover:text-slate-400 hover:bg-white/5 border border-transparent hover:border-white/6 transition-all duration-150 bg-transparent"
             >
               <Mic size={16} />
             </button>
