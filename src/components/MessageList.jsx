@@ -1,6 +1,8 @@
 import { useDispatch, useSelector } from "react-redux";
 import MessageBubble from "./MessageBubble";
 import { selectMessages, setSelectedArtifact } from "../redux/messageSlice.js";
+import LoadingAnimation from "./LoadingAnimation.jsx";
+import { useEffect, useRef } from "react";
 
 const MessageList = () => {
   const { selectedConversation } = useSelector((state) => state.conversation);
@@ -15,6 +17,18 @@ const MessageList = () => {
       state.message.sendConversationId === selectedConversation._id,
     ),
   );
+
+  const bottomRef=useRef(null)
+
+  useEffect(() => {
+  requestAnimationFrame(() => {
+    bottomRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+    });
+  });
+}, [messages?.length, sending]);
+
   return (
     <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 space-y-5 scrollbar-none [&::-webkit-scrollbar]:hidden">
       {chat?.loading && <p role="status">Loading messages…</p>}
@@ -67,13 +81,10 @@ const MessageList = () => {
               />
             </div>
           ))}
+      {sending &&<LoadingAnimation/>}
         </div>
       )}
-      {sending && (
-        <p role="status" className="text-slate-400">
-          Thinking…
-        </p>
-      )}
+      <div ref={bottomRef}/>
     </div>
   );
 };

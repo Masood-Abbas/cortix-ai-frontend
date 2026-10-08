@@ -2,6 +2,7 @@ import { Crown, X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useSelector } from "react-redux";
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { createBillingOrder } from "../../features/createBillingOrder.js";
 
 const BillingDrawer = ({ open, onClose }) => {
@@ -22,7 +23,7 @@ const BillingDrawer = ({ open, onClose }) => {
     }
   };
 
-  return (
+  const drawer = (
     <AnimatePresence>
       {open && (
         <>
@@ -38,7 +39,7 @@ const BillingDrawer = ({ open, onClose }) => {
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ duration: 0.25 }}
-            className="fixed right-0 top-0 z-50 h-[100svh] w-[min(24rem,100vw)] bg-[#0f1117] border border-white/10 shadow-2xl flex flex-col "
+            className="fixed right-0 top-0 z-50 h-svh w-[min(24rem,100vw)] bg-[#0f1117] border border-white/10 shadow-2xl flex flex-col "
           >
             {/* header */}
             <div className="flex items-center justify-between p-5 border-b border-white/10">
@@ -130,6 +131,8 @@ const BillingDrawer = ({ open, onClose }) => {
       )}
     </AnimatePresence>
   );
+
+  return createPortal(drawer, document.body);
 };
 
 export default BillingDrawer;

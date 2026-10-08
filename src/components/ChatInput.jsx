@@ -44,11 +44,10 @@ const ChatInput = () => {
     const prompt = value.trim();
     const attachedFile = selectedFile || fileRef.current?.files?.[0] || null;
     if ((!prompt && !attachedFile) || disabled) return;
-    const result = await dispatch(sendChatMessage({ prompt, conversationId,agent:selectedAgent.toLowerCase(), file:attachedFile }));
-    if (sendChatMessage.fulfilled.match(result)) {
+     await dispatch(sendChatMessage({ prompt, conversationId,agent:selectedAgent.toLowerCase(), file:attachedFile }));
+   
       setValue("");
       clearSelectedFile();
-    }
   };
 
   return (
@@ -85,7 +84,7 @@ const ChatInput = () => {
         </div>
 
         {selectedFile && (
-          <div className="flex items-center gap-3 rounded-xl border border-white/8 bg-black/20 px-3 py-2">
+          <div className="w-60 flex items-center gap-3 rounded-xl border border-white/8 bg-black/20 px-3 py-2">
             {isSelectedImage && previewUrl ? (
               <img
                 src={previewUrl}
@@ -133,13 +132,11 @@ const ChatInput = () => {
             }
           }}/>
             <button
-              title="Attachments are  available t"
               className="p-2  cursor-pointer flex items-center justify-center w-8 h-8 rounded-lg text-slate-600 hover:text-slate-400 hover:bg-white/5 border border-transparent hover:border-white/6 transition-all duration-150 bg-transparent" 
               onClick={()=>fileRef.current.click()}>
               <Paperclip size={16} />
             </button>
             <button
-              title="Voice input is not available yet"
               className="p-2  cursor-pointer flex items-center justify-center w-8 h-8 rounded-lg text-slate-600 hover:text-slate-400 hover:bg-white/5 border border-transparent hover:border-white/6 transition-all duration-150 bg-transparent"
             >
               <Mic size={16} />

@@ -113,9 +113,9 @@ const Artifact = ({ mobileOpen = false, onMobileClose }) => {
               <div className="flex items-center justify-center w-6 h-6 rounded-md bg-indigo-500/10 border border-indigo-500/20 shrink-0">
                 <Code2 size={12} className="text-indigo-400" />
               </div>
-              <div className="text-[13px] font-medium to-slate-200 truncate">
+              {/* <div className="text-[13px] font-medium to-slate-200 truncate">
                 {artifact?.title || "Untitled Artifact"}
-              </div>
+              </div> */}
             </div>
             <button
               className="xl:hidden flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-white/5 transition-colors duration-150 bg-transparent border-none cursor-pointer shrink-0"
