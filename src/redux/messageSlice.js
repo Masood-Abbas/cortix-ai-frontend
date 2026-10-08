@@ -77,9 +77,9 @@ const messageSlice = createSlice({
       state.sendRequestId = null;
       state.sendConversationId = null;
     })
-    .addCase(sendChatMessage.rejected, (state, { meta }) => {
+    .addCase(sendChatMessage.rejected, (state, { meta, payload }) => {
       if (state.sendRequestId !== meta.requestId) return;
-      const error = "Could not complete the reply. Reopen the chat to check saved messages before retrying.";
+      const error = payload?.message || "Could not complete the reply. Reopen the chat to check saved messages before retrying.";
       if (state.sendConversationId) record(state, state.sendConversationId).error = error;
       else state.error = "Could not create the chat. Please try again.";
       state.sendRequestId = null;

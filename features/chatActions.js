@@ -27,7 +27,7 @@ export const loadMessages = createAsyncThunk(
 
 export const sendChatMessage = createAsyncThunk(
   "message/send",
-  async ({ prompt, conversationId ,agent,file}, { dispatch, getState, requestId }) => {
+  async ({ prompt, conversationId ,agent,file}, { dispatch, getState, requestId, rejectWithValue }) => {
     const { selectionVersion, sessionVersion } = getState().conversation;
     const isCurrentSession = () =>
       getState().conversation.sessionVersion === sessionVersion;
@@ -56,7 +56,17 @@ export const sendChatMessage = createAsyncThunk(
       }
     }
     if (!isCurrentSession()) throw new Error("Session changed");
-    const response = await sendMessage({ prompt, conversationId,agent,file });
+    let response;
+    try {
+      response = await sendMessage({ prompt, conversationId,agent,file });
+    } catch (error) {
+      const message =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message ||
+        "Could not complete the reply.";
+      return rejectWithValue({ conversationId, message });
+    }
     const content = typeof response === "string" ? response : response?.content;
     if (typeof content !== "string" || !content.trim())
       throw new Error("Empty response");

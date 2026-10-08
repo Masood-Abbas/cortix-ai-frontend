@@ -1,8 +1,6 @@
 import api from "../utils/axios.js";
 
 const sendMessage = async (payload) => {
-
-  console.log("payload",payload)
   const hasFile =
     payload?.file instanceof File ||
     payload?.file instanceof Blob ||
