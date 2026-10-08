@@ -68,7 +68,7 @@ const MessageBubble = ({
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-5`}>
       <div
-        className={`w-fit max-w-[92vw]  md:max-w-[72%] px-4 py-2.5 text-left rounded-2xl wrap-break-word text-[13.5px] overflow-hidden leading-relaxed ${
+        className={`w-fit max-w-[88vw] sm:max-w-[82vw] md:max-w-[72%] px-3 sm:px-4 py-2.5 text-left rounded-2xl wrap-break-word text-[13.5px] overflow-hidden leading-relaxed ${
           isUser
             ? "bg-linear-to-br from-indigo-500 to-violet-700 text-white rounded-tr-sm"
             : "text-slate-200 rounded-200 rounded-tl-sm "

@@ -52,15 +52,15 @@ const ChatInput = () => {
   };
 
   return (
-    <div className="w-full overflow-hidden px-3 md:px-5 py-4 border-t border-white/6 bg-[#0d0f14]">
+    <div className="w-full overflow-hidden px-2 sm:px-3 md:px-5 py-3 sm:py-4 border-t border-white/6 bg-[#0d0f14]">
       {!conversationId && error && (
         <p role="alert" className="text-red-400 mb-2">
           {error}
         </p>
       )}
-      <div className="flex flex-col gap-2 bg-white/3 border border-white/7 px-4 pt-3.5 pb-3 rounded-2xl">
+      <div className="flex flex-col gap-2 bg-white/3 border border-white/7 px-3 sm:px-4 pt-3.5 pb-3 rounded-2xl">
         {/* agent list */}
-        <div className="flex w-[80%] gap-2 pr-2 flex-wrap">
+        <div className="flex w-full gap-2 overflow-x-auto pb-1 pr-2 scrollbar-none [&::-webkit-scrollbar]:hidden sm:flex-wrap">
           {agentsList.map((agent) => {
             const isActive = selectedAgent === agent.label;
             const Icon = agent.icon;
@@ -68,7 +68,7 @@ const ChatInput = () => {
             return (
               <div
               onClick={()=>setSelectedAgent(agent.label)}
-                className={`inline-flex shrink-0 items-center gap-1.5 px-3 py-2 rounded-full text-xs font-medium border transition-all cursor-pointer ${
+                className={`inline-flex shrink-0 items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-full text-xs font-medium border transition-all cursor-pointer ${
                   isActive
                     ? "bg-linear-to-r from-indigo-500 to-violet-600 text-white border-transparent shadow-[0_1px_8px_rgba(99,102,241,.35)] "
                     : " bg-white/3 text-slate-400 border-white/6 hover:border-white/7"
@@ -125,7 +125,7 @@ const ChatInput = () => {
           className="w-full bg-transparent outline-none resize-none text-[14px] text-slate-200 placeholder:text-slate-600 leading-relaxed scrollbar-none [&::-webkit-scrollbar]:hidden disabled:opacity-50"
           rows={3}
         />
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1">
           <input type="file" accept='.pdf,image/*' hidden ref={fileRef} onChange={(e)=>{ const file = e.target.files[0]
             if(file){
@@ -149,7 +149,7 @@ const ChatInput = () => {
             onClick={handleSendMessage}
             disabled={disabled || (!value.trim() && !selectedFile)}
             aria-label="Send message"
-            className="flex items-center justify-center w-8 h-8 rounded-lg border-none cursor-pointer transition-all duration-150 bg-linear-to-br from-indigo-500 to-violet-700 text-white/80 disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex shrink-0 items-center justify-center w-8 h-8 rounded-lg border-none cursor-pointer transition-all duration-150 bg-linear-to-br from-indigo-500 to-violet-700 text-white/80 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             <Send size={15} />
           </button>

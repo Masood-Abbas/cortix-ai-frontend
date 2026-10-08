@@ -14,9 +14,10 @@ import {
   Copy,
   Eye,
   Check,
+  X,
 } from "lucide-react";
 
-const Artifact = () => {
+const Artifact = ({ mobileOpen = false, onMobileClose }) => {
   const dispatch = useDispatch();
   const artifactEntries = useSelector(selectArtifactEntries);
   const selectedArtifactId = useSelector((state) => state.message.selectedArtifactId);
@@ -89,20 +90,20 @@ const Artifact = () => {
 
   return (
     <motion.div
-      initial={{ width: 400 }}
-      animate={{ width: collapsed ? 48 : 400 }}
+      initial={false}
+      animate={{ width: mobileOpen ? "100vw" : collapsed ? 48 : 360 }}
       transition={{
         duration: 0.5,
         ease: "easeInOut",
       }}
-      className="hidden lg:flex h-full border border-white/6 flex-col overflow-hidden shrink-0 w-62.5"
+      className={`${mobileOpen ? "fixed inset-0 z-50 flex w-full" : "hidden"} xl:static xl:z-auto xl:flex h-full border border-white/6 flex-col overflow-hidden shrink-0 bg-[#0d0f14]`}
     >
       {!collapsed ? (
         <div className="flex flex-col h-full bg-[#0d0f14]">
           {/* title */}
-          <div className="h-14 px-4 border-b border-white/6 flex items-center gap-3 shrink-0">
+          <div className="h-14 px-3 sm:px-4 border-b border-white/6 flex items-center gap-2 sm:gap-3 shrink-0">
             <button
-              className="flex items-center justify-center w-7 h-7 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-white/5 transition-colors duration-150 bg-transparent border-none cursor-pointer shrink-0
+              className="hidden xl:flex items-center justify-center w-7 h-7 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-white/5 transition-colors duration-150 bg-transparent border-none cursor-pointer shrink-0
         "
               onClick={() => setCollapsed(true)}
             >
@@ -116,6 +117,13 @@ const Artifact = () => {
                 {artifact?.title || "Untitled Artifact"}
               </div>
             </div>
+            <button
+              className="xl:hidden flex items-center justify-center w-8 h-8 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-white/5 transition-colors duration-150 bg-transparent border-none cursor-pointer shrink-0"
+              onClick={onMobileClose}
+              aria-label="Close artifacts"
+            >
+              <X size={17} />
+            </button>
 
             {/* content or code editor */}
 
@@ -236,7 +244,7 @@ const Artifact = () => {
           </div>
         </div>
       ) : (
-        <div className="hidden lg:flex h-full border border-white/6 bg-[#0d0f14] flex-col items-center py-4 gap-3 shrink-0">
+        <div className="hidden xl:flex h-full border border-white/6 bg-[#0d0f14] flex-col items-center py-4 gap-3 shrink-0">
           <button
             className="flex  items-center justify-center w-7 h-7 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-white/5 transition-colors duration-150 bg-transparent border-none cursor-pointer shrink-0
         "

@@ -16,7 +16,7 @@ const MessageList = () => {
     ),
   );
   return (
-    <div className="flex-1 overflow-y-auto p-6 space-y-5 scrollbar-none [&::-webkit-scrollbar]:hidden">
+    <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6 space-y-5 scrollbar-none [&::-webkit-scrollbar]:hidden">
       {chat?.loading && <p role="status">Loading messages…</p>}
       {chat?.error && (
         <p role="alert" className="text-red-400">
@@ -51,7 +51,7 @@ const MessageList = () => {
           </div>
         </div>
       ) : (
-        <div>
+        <div className="min-w-0">
           {messages?.map((msg, i) => (
             <div key={i} className="space-y-5">
               <MessageBubble

@@ -19,7 +19,7 @@ import { logout } from "../../features/logout";
 import { setUserData } from "../redux/userSlice";
 import BillingDrawer from "./BillingDrawer";
 
-const SideBar = () => {
+const SideBar = ({ mobileOpen = false, onMobileClose }) => {
   const dispatch = useDispatch();
 
   const { conversations = [], selectedConversation } = useSelector(
@@ -77,10 +77,19 @@ const SideBar = () => {
   const avatar = userData?.avatar || userData?.user?.avatar;
 
   return (
+    <>
+    {mobileOpen && (
+      <button
+        type="button"
+        aria-label="Close sidebar"
+        onClick={onMobileClose}
+        className="fixed inset-0 z-40 bg-black/60 lg:hidden"
+      />
+    )}
     <div
-      className={`fixed lg:static inset-y-0 left-0 z-50 h-screen shrink-0 bg-[#0d0f14] border-r border-white/6 transition-all duration-450 ${
+      className={`fixed lg:static inset-y-0 left-0 z-50 h-[100svh] shrink-0 bg-[#0d0f14] border-r border-white/6 transition-all duration-300 ${
         collapsed ? "w-16" : "w-67.5"
-      }`}
+      } ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
     >
       <div className="flex flex-col h-full">
         {/* header */}
@@ -163,7 +172,10 @@ const SideBar = () => {
             return (
               <div
                 key={conv?._id || i}
-                onClick={() => dispatch(setSelectedConversation(conv))}
+                onClick={() => {
+                  dispatch(setSelectedConversation(conv));
+                  onMobileClose?.();
+                }}
                 title={collapsed ? conv?.title || "New Chat" : ""}
                 className={`flex items-center gap-2.5 cursor-pointer mb-0.5 px-3 py-2.5 rounded-[10px] border transition-colors duration-150 ${
                   isActive
@@ -281,6 +293,7 @@ const SideBar = () => {
       onClose={()=>setShowBilling(false)}
       />
     </div>
+    </>
   );
 };
 

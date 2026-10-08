@@ -5,7 +5,7 @@ import NavChat from "./NavChat";
 import { useDispatch, useSelector } from "react-redux";
 import { loadMessages } from "../../features/chatActions.js";
 
-const ChatArea = () => {
+const ChatArea = ({ onOpenSidebar, onOpenArtifact }) => {
   const id = useSelector((state) => state.conversation.selectedConversation?._id);
   const dispatch = useDispatch();
   useEffect(() => {
@@ -15,7 +15,10 @@ const ChatArea = () => {
   }, [id, dispatch]);
   return (
     <div className="flex-1 min-h-0 min-w-0 flex flex-col">
-      <NavChat />
+      <NavChat
+        onOpenSidebar={onOpenSidebar}
+        onOpenArtifact={onOpenArtifact}
+      />
       <MessageList />
       <ChatInput key={id || "new-chat"} />
     </div>
