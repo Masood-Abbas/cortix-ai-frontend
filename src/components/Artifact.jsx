@@ -5,7 +5,6 @@ import {
   setSelectedArtifact,
 } from "../redux/messageSlice.js";
 import { useMemo, useState } from "react";
-import { motion } from "motion/react";
 import Editor from "@monaco-editor/react";
 import {
   Code2,
@@ -88,14 +87,11 @@ const Artifact = ({ mobileOpen = false, onMobileClose }) => {
     setTimeout(() => setCopied(false), 2000);
   }
 
+  const panelWidth = mobileOpen ? "100vw" : collapsed ? 48 : 360;
+
   return (
-    <motion.div
-      initial={false}
-      animate={{ width: mobileOpen ? "100vw" : collapsed ? 48 : 360 }}
-      transition={{
-        duration: 0.5,
-        ease: "easeInOut",
-      }}
+    <div
+      style={{ width: panelWidth }}
       className={`${mobileOpen ? "fixed inset-0 z-50 flex w-full" : "hidden"} xl:static xl:z-auto xl:flex h-full border border-white/6 flex-col overflow-hidden shrink-0 bg-[#0d0f14]`}
     >
       {!collapsed ? (
@@ -204,25 +200,15 @@ const Artifact = ({ mobileOpen = false, onMobileClose }) => {
 
           <div className="flex-1 overflow-hidden">
             {tab === "preview" && canPreview ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5 }}
-                className="w-full h-full "
-              >
+              <div className="w-full h-full ">
                 <iframe
                   title="preview"
                   srcDoc={previewDoc}
                   className="w-full h-full "
                 />
-              </motion.div>
+              </div>
             ) : (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5 }}
-                className="w-full h-full "
-              >
+              <div className="w-full h-full ">
                 <Editor
                   theme="vs-dark"
                   language={detectLanguage(file?.name)}
@@ -239,7 +225,7 @@ const Artifact = ({ mobileOpen = false, onMobileClose }) => {
                   renderLineHighlight: "none",
                   }}
                 />
-              </motion.div>
+              </div>
             )}
           </div>
         </div>
@@ -265,7 +251,7 @@ const Artifact = ({ mobileOpen = false, onMobileClose }) => {
           </div>
         </div>
       )}
-    </motion.div>
+    </div>
   );
 };
 

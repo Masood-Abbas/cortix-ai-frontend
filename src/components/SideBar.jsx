@@ -18,6 +18,7 @@ import {
 import { logout } from "../../features/logout";
 import { setUserData } from "../redux/userSlice";
 import BillingDrawer from "./BillingDrawer";
+import digitalVibeLogo from "../assets/digital-vibe-logo.jpeg";
 
 const SideBar = ({ mobileOpen = false, onMobileClose }) => {
   const dispatch = useDispatch();
@@ -88,7 +89,7 @@ const SideBar = ({ mobileOpen = false, onMobileClose }) => {
         />
       )}
       <div
-        className={`fixed lg:static inset-y-0 left-0 z-50 h-svh shrink-0 bg-[#0d0f14] border-r border-white/6 transition-all duration-300 ${
+        className={`fixed lg:static inset-y-0 left-0 z-50 h-svh shrink-0 bg-[#0d0f14] border-r border-white/6 ${
           collapsed ? "w-16" : "w-67.5"
         } ${mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       >
@@ -112,9 +113,16 @@ const SideBar = ({ mobileOpen = false, onMobileClose }) => {
 
             {!collapsed && (
               <>
-                <span className="text-[16px] font-semibold text-slate-100 tracking-tight flex-1 text-left!">
-                  CortexAi
-                </span>
+                <div className="flex flex-1 items-center gap-2 min-w-0">
+                  <img
+                    src={digitalVibeLogo}
+                    alt="Digital Vibe"
+                    className="h-8 w-8 rounded-lg object-cover border border-white/10 shrink-0"
+                  />
+                  <span className="text-[15px] font-semibold text-slate-100 tracking-tight truncate text-left!">
+                    Digital Vibe
+                  </span>
+                </div>
 
                 <span className="text-[10px] font-medium text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-2 py-0.5 rounded-full tracking-wide">
                   {(

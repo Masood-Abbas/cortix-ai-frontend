@@ -4,6 +4,7 @@ import api from "../../utils/axios";
 import { auth, googleProvider } from "../../utils/firebase";
 import { useDispatch } from "react-redux";
 import { setUserData } from "../redux/userSlice";
+import digitalVibeLogo from "../assets/digital-vibe-logo.jpeg";
 
 
 const GoogleLogin = () => {
@@ -25,9 +26,14 @@ const GoogleLogin = () => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <div className="mx-4 w-full max-w-sm bg-[#13151c] border border-white/10 rounded-2xl p-5 sm:p-7 flex flex-col gap-5">
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <img
+            src={digitalVibeLogo}
+            alt="Digital Vibe"
+            className="h-20 w-20 rounded-2xl object-cover border border-white/10"
+          />
           <h2 className="text-[17px] font-semibold text-slate-100 tracking-tight">
-            Welcome to CortexAI
+            Welcome to Digital Vibe
           </h2>
 
           <p className="text-[13px] text-slate-500">
@@ -38,7 +44,7 @@ const GoogleLogin = () => {
         <button
           type="button"
           onClick={googleLogin}
-          className="w-full flex items-center justify-center gap-3 py-2.75 rounded-xl text-sm font-medium text-black/90 bg-white hover:bg-gray-200 border shadow-lg transition-all duration-150 cursor-pointer"
+          className="w-full flex items-center justify-center gap-3 py-2.75 rounded-xl text-sm font-medium text-black/90 bg-white hover:bg-gray-200 border shadow-lg cursor-pointer"
         >
           <FcGoogle size={22} />
           Continue With Google

@@ -3,6 +3,7 @@ import MessageBubble from "./MessageBubble";
 import { selectMessages, setSelectedArtifact } from "../redux/messageSlice.js";
 import LoadingAnimation from "./LoadingAnimation.jsx";
 import { useEffect, useRef } from "react";
+import digitalVibeLogo from "../assets/digital-vibe-logo.jpeg";
 
 const MessageList = () => {
   const { selectedConversation } = useSelector((state) => state.conversation);
@@ -23,7 +24,6 @@ const MessageList = () => {
   useEffect(() => {
   requestAnimationFrame(() => {
     bottomRef.current?.scrollIntoView({
-      behavior: "smooth",
       block: "end",
     });
   });
@@ -39,9 +39,14 @@ const MessageList = () => {
       )}
       {!chat?.loading && (messages.length == 0 || !selectedConversation) ? (
         <div className="h-full flex flex-col items-center justify-center gap-4 text-center">
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col items-center gap-1.5">
+            <img
+              src={digitalVibeLogo}
+              alt="Digital Vibe"
+              className="mb-2 h-16 w-16 rounded-2xl object-cover border border-white/10"
+            />
             <h2 className="text-[20px] font-semibold text-slate-200 tracking-tight">
-              Cortex AI
+              Digital Vibe
             </h2>
             <p className="text-[15px] font-semibold text-slate-400 tracking-tight">
               How can I help you?

@@ -1,5 +1,4 @@
 import { Crown, X } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
 import { useSelector } from "react-redux";
 import { useState } from "react";
 import { createPortal } from "react-dom";
@@ -23,24 +22,13 @@ const BillingDrawer = ({ open, onClose }) => {
     }
   };
 
-  const drawer = (
-    <AnimatePresence>
-      {open && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.5 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-black z-40"
-          />
-          <motion.div
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ duration: 0.25 }}
-            className="fixed right-0 top-0 z-50 h-svh w-[min(24rem,100vw)] bg-[#0f1117] border border-white/10 shadow-2xl flex flex-col "
-          >
+  const drawer = open ? (
+    <>
+      <div
+        onClick={onClose}
+        className="fixed inset-0 bg-black/50 z-40"
+      />
+      <div className="fixed right-0 top-0 z-50 h-svh w-[min(24rem,100vw)] bg-[#0f1117] border border-white/10 shadow-2xl flex flex-col ">
             {/* header */}
             <div className="flex items-center justify-between p-5 border-b border-white/10">
               <div>
@@ -79,7 +67,7 @@ const BillingDrawer = ({ open, onClose }) => {
                   </div>
                   <div className="h-2 rounded-full bg-white/10 overflow-hidden ">
                     <div
-                      className="h-full bg-indigo-500 transition-all duration-500"
+                      className="h-full bg-indigo-500"
                       style={{
                         width: `${((userData?.credits || 0) / (userData?.totalCredits || 1)) * 100}%`,
                       }}
@@ -126,11 +114,9 @@ const BillingDrawer = ({ open, onClose }) => {
                 </div>
 
             </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
-  );
+      </div>
+    </>
+  ) : null;
 
   return createPortal(drawer, document.body);
 };
