@@ -1,6 +1,6 @@
 
 import { FileText, Mic, Paperclip, Send, X } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { sendChatMessage } from "../../features/chatActions.js";
 import { agentsList } from "../../utils/staticData/agents.jsx";
@@ -14,7 +14,11 @@ const ChatInput = () => {
 
   const fileRef = useRef(null);
   const recognitionRef = useRef(null);
+  const microphoneStreamRef = useRef(null);
+  const shouldKeepListeningRef = useRef(false);
   const speechBaseValueRef = useRef("");
+  const finalTranscriptRef = useRef("");
+  const restartTimeoutRef = useRef(null);
 
   const conversationId = useSelector(
     (state) => state.conversation.selectedConversation?._id
@@ -29,7 +33,6 @@ const ChatInput = () => {
   );
 
   const user = useSelector((state) => state.user.userData);
-
   const dispatch = useDispatch();
 
   const disabled =
@@ -39,42 +42,52 @@ const ChatInput = () => {
 
   const isSelectedImage = selectedFile?.type?.startsWith("image/");
 
-  const previewUrl = useMemo(
-    () =>
-      selectedFile && isSelectedImage
-        ? URL.createObjectURL(selectedFile)
-        : "",
-    [selectedFile, isSelectedImage]
-  );
+  const previewUrl = useMemo(() => {
+    return selectedFile && isSelectedImage
+      ? URL.createObjectURL(selectedFile)
+      : "";
+  }, [selectedFile, isSelectedImage]);
 
-  // Clean up image preview URL
+  // Release image preview URL
   useEffect(() => {
     if (!previewUrl) return undefined;
 
     return () => URL.revokeObjectURL(previewUrl);
   }, [previewUrl]);
 
-  // Stop speech recognition when the component unmounts
   useEffect(() => {
     return () => {
+      shouldKeepListeningRef.current = false;
+
+      if (restartTimeoutRef.current) {
+        clearTimeout(restartTimeoutRef.current);
+      }
+
       const recognition = recognitionRef.current;
 
       if (recognition) {
-        recognition.onend = null;
+        recognition.onstart = null;
+        recognition.onresult = null;
         recognition.onerror = null;
+        recognition.onend = null;
 
         try {
-          recognition.stop();
+          recognition.abort();
         } catch {
           // Recognition may already be stopped
         }
-
-        recognitionRef.current = null;
       }
+
+      recognitionRef.current = null;
+
+      microphoneStreamRef.current?.getTracks().forEach((track) => {
+        track.stop();
+      });
+
+      microphoneStreamRef.current = null;
     };
   }, []);
 
-  // Clear selected attachment
   const clearSelectedFile = () => {
     setSelectedFile(null);
 
@@ -83,112 +96,251 @@ const ChatInput = () => {
     }
   };
 
-  // Speech-to-text functionality
-  const handleSpeechToText = () => {
-    const SpeechRecognition =
-      window.SpeechRecognition ||
-      window.webkitSpeechRecognition;
+  // Release microphone resources
+  const releaseMicrophone = useCallback(() => {
+    microphoneStreamRef.current?.getTracks().forEach((track) => {
+      track.stop();
+    });
 
-    if (!SpeechRecognition) {
-      setSpeechError(
-        "Speech recognition is not supported. Please use a supported browser such as Chrome."
-      );
-      return;
+    microphoneStreamRef.current = null;
+  }, []);
+
+  // Stop speech recognition
+  const stopSpeechRecognition = useCallback(() => {
+    shouldKeepListeningRef.current = false;
+
+    if (restartTimeoutRef.current) {
+      clearTimeout(restartTimeoutRef.current);
+      restartTimeoutRef.current = null;
     }
 
-    // Stop recording if already listening
-    if (recognitionRef.current && isListening) {
-      recognitionRef.current.stop();
-      return;
-    }
+    const recognition = recognitionRef.current;
 
-    setSpeechError("");
-    speechBaseValueRef.current = value.trim();
-
-    const recognition = new SpeechRecognition();
-
-    recognition.lang = "en-US";
-
-    recognition.continuous = true;
-    recognition.interimResults = true;
-
-    recognition.onstart = () => {
-      setIsListening(true);
-      setSpeechError("");
-    };
-
-    recognition.onresult = (event) => {
-      const transcript = Array.from(event.results)
-        .map((result) => result[0]?.transcript || "")
-        .join(" ")
-        .trim();
-
-        console.log("transcript",transcript )
-      if (transcript) {
-        setValue(
-          speechBaseValueRef.current
-            ? `${speechBaseValueRef.current} ${transcript}`
-            : transcript
-        );
-      }
-    };
-
-    recognition.onerror = (event) => {
-      if (event.error === "not-allowed") {
-        setSpeechError(
-          "Please allow microphone access in your browser settings."
-        );
-      } else if (
-        event.error !== "no-speech" &&
-        event.error !== "aborted"
-      ) {
-        setSpeechError(
-          `Speech recognition error: ${event.error}`
-        );
-      }
-
-      setIsListening(false);
-    };
-
-    recognition.onend = () => {
-      setIsListening(false);
-
-      if (recognitionRef.current === recognition) {
-        recognitionRef.current = null;
-      }
-    };
-
-    recognitionRef.current = recognition;
-
-    try {
-      recognition.start();
-    } catch {
-      recognitionRef.current = null;
-      setIsListening(false);
-      setSpeechError(
-        "Unable to start speech recognition. Please try again."
-      );
-    }
-  };
-
-  // Send message with optional attachment
-  const handleSendMessage = async () => {
-    const prompt = value.trim();
-    const attachedFile =
-      selectedFile || fileRef.current?.files?.[0] || null;
-
-    if ((!prompt && !attachedFile) || disabled) return;
-
-    if (recognitionRef.current) {
+    if (recognition) {
       try {
-        recognitionRef.current.stop();
+        recognition.stop();
       } catch {
         // Recognition may already be stopped
       }
     }
 
+    setIsListening(false);
+    releaseMicrophone();
+  }, [releaseMicrophone]);
+
+  // Speech-to-text
+  const handleSpeechToText = async () => {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      setSpeechError(
+        "Speech recognition is not supported. Please use Chrome."
+      );
+      return;
+    }
+
+    // Clicking the microphone again stops recording
+    if (shouldKeepListeningRef.current || recognitionRef.current) {
+      stopSpeechRecognition();
+      return;
+    }
+
+    setSpeechError("");
+
+    shouldKeepListeningRef.current = true;
+    speechBaseValueRef.current = value.trim();
+    finalTranscriptRef.current = "";
+
     try {
-      const result = await dispatch(
+      
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          noiseSuppression: false,
+          echoCancellation: false,
+          autoGainControl: false,
+        },
+      });
+
+      if (!shouldKeepListeningRef.current) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
+
+      microphoneStreamRef.current = stream;
+
+      const startRecognition = () => {
+        if (!shouldKeepListeningRef.current) return;
+
+        const recognition = new SpeechRecognition();
+
+        recognition.lang = "en-US";
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.maxAlternatives = 1;
+
+        recognition.onstart = () => {
+          if (recognitionRef.current === recognition) {
+            setIsListening(true);
+            setSpeechError("");
+          }
+        };
+
+        recognition.onresult = (event) => {
+          if (recognitionRef.current !== recognition) return;
+
+          let interimTranscript = "";
+
+          for (
+            let i = event.resultIndex;
+            i < event.results.length;
+            i++
+          ) {
+            const transcript =
+              event.results[i][0]?.transcript || "";
+
+            if (event.results[i].isFinal) {
+              finalTranscriptRef.current += `${transcript} `;
+            } else {
+              interimTranscript += `${transcript} `;
+            }
+          }
+
+          const spokenText = (
+            finalTranscriptRef.current + interimTranscript
+          ).trim();
+
+          setValue(
+            [speechBaseValueRef.current, spokenText]
+              .filter(Boolean)
+              .join(" ")
+          );
+        };
+
+        recognition.onerror = (event) => {
+          console.error("Speech recognition error:", event.error);
+
+          if (recognitionRef.current !== recognition) return;
+
+          if (
+            [
+              "not-allowed",
+              "service-not-allowed",
+              "audio-capture",
+              "language-not-supported",
+            ].includes(event.error)
+          ) {
+            shouldKeepListeningRef.current = false;
+            setIsListening(false);
+            releaseMicrophone();
+
+            const messages = {
+              "not-allowed":
+                "Please allow microphone access in your browser settings.",
+              "service-not-allowed":
+                "The browser speech recognition service is blocked.",
+              "audio-capture":
+                "No microphone was found. Check your microphone connection.",
+              "language-not-supported":
+                "The selected recognition language is not supported.",
+            };
+
+            setSpeechError(messages[event.error]);
+          } else if (event.error === "network") {
+            setSpeechError(
+              "Speech recognition network error. Check your internet connection."
+            );
+          } else if (
+            event.error !== "no-speech" &&
+            event.error !== "aborted"
+          ) {
+            setSpeechError(
+              `Speech recognition error: ${event.error}`
+            );
+          }
+        };
+
+        recognition.onend = () => {
+          if (recognitionRef.current !== recognition) return;
+
+          recognitionRef.current = null;
+
+          if (!shouldKeepListeningRef.current) {
+            setIsListening(false);
+            releaseMicrophone();
+            return;
+          }
+
+          restartTimeoutRef.current = setTimeout(() => {
+            restartTimeoutRef.current = null;
+
+            if (!shouldKeepListeningRef.current) return;
+
+            try {
+              startRecognition();
+            } catch (err) {
+              console.error("Recognition restart failed:", err);
+
+              shouldKeepListeningRef.current = false;
+              setIsListening(false);
+              releaseMicrophone();
+
+              setSpeechError(
+                "Unable to restart speech recognition. Please try again."
+              );
+            }
+          }, 250);
+        };
+
+        recognitionRef.current = recognition;
+
+        try {
+          recognition.start();
+        } catch (err) {
+          recognitionRef.current = null;
+          throw err;
+        }
+      };
+
+      startRecognition();
+    } catch (err) {
+      console.error("Microphone initialization error:", err);
+
+      shouldKeepListeningRef.current = false;
+      setIsListening(false);
+      releaseMicrophone();
+
+      if (
+        err.name === "NotAllowedError" ||
+        err.name === "PermissionDeniedError"
+      ) {
+        setSpeechError(
+          "Please allow microphone access in your browser settings."
+        );
+      } else if (err.name === "NotFoundError") {
+        setSpeechError(
+          "No microphone found. Connect a microphone and try again."
+        );
+      } else {
+        setSpeechError(
+          "Unable to start speech recognition. Please try again."
+        );
+      }
+    }
+  };
+
+  const handleSendMessage = async () => {
+    const prompt = value.trim();
+
+    const attachedFile =
+      selectedFile || fileRef.current?.files?.[0] || null;
+
+    if ((!prompt && !attachedFile) || disabled) return;
+
+    stopSpeechRecognition();
+
+    try {
+       await dispatch(
         sendChatMessage({
           prompt,
           conversationId,
@@ -197,11 +349,12 @@ const ChatInput = () => {
         })
       );
 
-      if (sendChatMessage.fulfilled.match(result)) {
         setValue("");
         clearSelectedFile();
         setSpeechError("");
-      }
+        speechBaseValueRef.current = "";
+        finalTranscriptRef.current = "";
+      
     } catch (err) {
       console.error("Failed to send message:", err);
     }
@@ -236,9 +389,7 @@ const ChatInput = () => {
               >
                 <Icon
                   size={14}
-                  className={
-                    isActive ? "text-white" : "text-slate-500"
-                  }
+                  className={isActive ? "text-white" : "text-slate-500"}
                 />
                 {agent.label}
               </button>
@@ -265,7 +416,6 @@ const ChatInput = () => {
               <p className="truncate text-sm text-slate-200">
                 {selectedFile.name}
               </p>
-
               <p className="text-xs text-slate-500">
                 {isSelectedImage ? "Image selected" : "File selected"}
               </p>
@@ -288,7 +438,8 @@ const ChatInput = () => {
           placeholder="Ask Anything..."
           onChange={(event) => setValue(event.target.value)}
           value={value}
-          disabled={disabled}
+          disabled={isListening}
+          
           onKeyDown={(event) => {
             if (
               event.key === "Enter" &&
@@ -321,12 +472,12 @@ const ChatInput = () => {
         {/* Toolbar */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-1">
-            {/* File input */}
             <input
               type="file"
               accept=".pdf,image/*"
               hidden
               ref={fileRef}
+              disabled={isListening}
               onChange={(event) => {
                 const file = event.target.files?.[0];
 
@@ -348,21 +499,13 @@ const ChatInput = () => {
               <Paperclip size={16} />
             </button>
 
-            {/* Speech-to-text button */}
+            {/* Microphone button */}
             <button
               type="button"
               onClick={handleSpeechToText}
               disabled={disabled}
-              title={
-                isListening
-                  ? "Stop recording"
-                  : "Start speech to text"
-              }
-              aria-label={
-                isListening
-                  ? "Stop recording"
-                  : "Start speech to text"
-              }
+              title={isListening ? "Stop recording" : "Start speech to text"}
+              aria-label={isListening ? "Stop recording" : "Start speech to text"}
               className={`p-2 cursor-pointer flex items-center justify-center w-8 h-8 rounded-lg border transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed ${
                 isListening
                   ? "bg-red-500/20 text-red-400 border-red-500/30"
@@ -377,9 +520,7 @@ const ChatInput = () => {
           <button
             type="button"
             onClick={handleSendMessage}
-            disabled={
-              disabled || (!value.trim() && !selectedFile)
-            }
+            disabled={disabled || (!value.trim() && !selectedFile)}
             aria-label="Send message"
             className="flex shrink-0 items-center justify-center w-8 h-8 rounded-lg border-none cursor-pointer transition-all duration-150 bg-linear-to-br from-indigo-500 to-violet-700 text-white/80 disabled:opacity-40 disabled:cursor-not-allowed"
           >
