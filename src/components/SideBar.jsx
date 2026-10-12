@@ -18,7 +18,6 @@ import {
 import { logout } from "../../features/logout";
 import { setUserData } from "../redux/userSlice";
 import BillingDrawer from "./BillingDrawer";
-import digitalVibeLogo from "../assets/digital-vibe-logo.jpeg";
 
 const SideBar = ({ mobileOpen = false, onMobileClose }) => {
   const dispatch = useDispatch();
@@ -114,13 +113,8 @@ const SideBar = ({ mobileOpen = false, onMobileClose }) => {
             {!collapsed && (
               <>
                 <div className="flex flex-1 items-center gap-2 min-w-0">
-                  <img
-                    src={digitalVibeLogo}
-                    alt="Digital Vibe"
-                    className="h-8 w-8 rounded-lg object-cover border border-white/10 shrink-0"
-                  />
                   <span className="text-[15px] font-semibold text-slate-100 tracking-tight truncate text-left!">
-                    Digital Vibe
+                    CortaxAI
                   </span>
                 </div>
 

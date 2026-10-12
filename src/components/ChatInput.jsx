@@ -107,7 +107,6 @@ const ChatInput = () => {
 
     const recognition = new SpeechRecognition();
 
-    // Change to "ur-PK" for Urdu speech
     recognition.lang = "en-US";
 
     recognition.continuous = true;
@@ -124,6 +123,7 @@ const ChatInput = () => {
         .join(" ")
         .trim();
 
+        console.log("transcript",transcript )
       if (transcript) {
         setValue(
           speechBaseValueRef.current
@@ -179,7 +179,6 @@ const ChatInput = () => {
 
     if ((!prompt && !attachedFile) || disabled) return;
 
-    // Stop recording before sending
     if (recognitionRef.current) {
       try {
         recognitionRef.current.stop();
