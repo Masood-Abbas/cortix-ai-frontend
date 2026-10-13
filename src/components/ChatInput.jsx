@@ -1,4 +1,3 @@
-
 import { FileText, Mic, Paperclip, Send, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -21,24 +20,20 @@ const ChatInput = () => {
   const restartTimeoutRef = useRef(null);
 
   const conversationId = useSelector(
-    (state) => state.conversation.selectedConversation?._id
+    (state) => state.conversation.selectedConversation?._id,
   );
 
-  const { sendRequestId, error } = useSelector(
-    (state) => state.message
-  );
+  const { sendRequestId, error } = useSelector((state) => state.message);
 
   const chat = useSelector(
-    (state) => state.message.byConversation[conversationId]
+    (state) => state.message.byConversation[conversationId],
   );
 
   const user = useSelector((state) => state.user.userData);
   const dispatch = useDispatch();
 
   const disabled =
-    !user ||
-    Boolean(sendRequestId) ||
-    Boolean(chat?.loading || chat?.error);
+    !user || Boolean(sendRequestId) || Boolean(chat?.loading || chat?.error);
 
   const isSelectedImage = selectedFile?.type?.startsWith("image/");
 
@@ -134,9 +129,7 @@ const ChatInput = () => {
       window.SpeechRecognition || window.webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      setSpeechError(
-        "Speech recognition is not supported. Please use Chrome."
-      );
+      setSpeechError("Speech recognition is not supported. Please use Chrome.");
       return;
     }
 
@@ -153,7 +146,6 @@ const ChatInput = () => {
     finalTranscriptRef.current = "";
 
     try {
-      
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           noiseSuppression: false,
@@ -191,13 +183,8 @@ const ChatInput = () => {
 
           let interimTranscript = "";
 
-          for (
-            let i = event.resultIndex;
-            i < event.results.length;
-            i++
-          ) {
-            const transcript =
-              event.results[i][0]?.transcript || "";
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0]?.transcript || "";
 
             if (event.results[i].isFinal) {
               finalTranscriptRef.current += `${transcript} `;
@@ -211,9 +198,7 @@ const ChatInput = () => {
           ).trim();
 
           setValue(
-            [speechBaseValueRef.current, spokenText]
-              .filter(Boolean)
-              .join(" ")
+            [speechBaseValueRef.current, spokenText].filter(Boolean).join(" "),
           );
         };
 
@@ -248,15 +233,10 @@ const ChatInput = () => {
             setSpeechError(messages[event.error]);
           } else if (event.error === "network") {
             setSpeechError(
-              "Speech recognition network error. Check your internet connection."
+              "Speech recognition network error. Check your internet connection.",
             );
-          } else if (
-            event.error !== "no-speech" &&
-            event.error !== "aborted"
-          ) {
-            setSpeechError(
-              `Speech recognition error: ${event.error}`
-            );
+          } else if (event.error !== "no-speech" && event.error !== "aborted") {
+            setSpeechError(`Speech recognition error: ${event.error}`);
           }
         };
 
@@ -286,7 +266,7 @@ const ChatInput = () => {
               releaseMicrophone();
 
               setSpeechError(
-                "Unable to restart speech recognition. Please try again."
+                "Unable to restart speech recognition. Please try again.",
               );
             }
           }, 250);
@@ -315,16 +295,14 @@ const ChatInput = () => {
         err.name === "PermissionDeniedError"
       ) {
         setSpeechError(
-          "Please allow microphone access in your browser settings."
+          "Please allow microphone access in your browser settings.",
         );
       } else if (err.name === "NotFoundError") {
         setSpeechError(
-          "No microphone found. Connect a microphone and try again."
+          "No microphone found. Connect a microphone and try again.",
         );
       } else {
-        setSpeechError(
-          "Unable to start speech recognition. Please try again."
-        );
+        setSpeechError("Unable to start speech recognition. Please try again.");
       }
     }
   };
@@ -332,29 +310,28 @@ const ChatInput = () => {
   const handleSendMessage = async () => {
     const prompt = value.trim();
 
-    const attachedFile =
-      selectedFile || fileRef.current?.files?.[0] || null;
+    const attachedFile = selectedFile || fileRef.current?.files?.[0] || null;
 
     if ((!prompt && !attachedFile) || disabled) return;
 
     stopSpeechRecognition();
 
+    // Clear input immediately before waiting for response
+    setValue("");
+    clearSelectedFile();
+    setSpeechError("");
+    speechBaseValueRef.current = "";
+    finalTranscriptRef.current = "";
+
     try {
-       await dispatch(
+      await dispatch(
         sendChatMessage({
           prompt,
           conversationId,
           agent: selectedAgent.toLowerCase(),
           file: attachedFile,
-        })
-      );
-
-        setValue("");
-        clearSelectedFile();
-        setSpeechError("");
-        speechBaseValueRef.current = "";
-        finalTranscriptRef.current = "";
-      
+        }),
+      ).unwrap();
     } catch (err) {
       console.error("Failed to send message:", err);
     }
@@ -438,8 +415,7 @@ const ChatInput = () => {
           placeholder="Ask Anything..."
           onChange={(event) => setValue(event.target.value)}
           value={value}
-          disabled={isListening}
-          
+          disabled={disabled || isListening}
           onKeyDown={(event) => {
             if (
               event.key === "Enter" &&
@@ -505,7 +481,9 @@ const ChatInput = () => {
               onClick={handleSpeechToText}
               disabled={disabled}
               title={isListening ? "Stop recording" : "Start speech to text"}
-              aria-label={isListening ? "Stop recording" : "Start speech to text"}
+              aria-label={
+                isListening ? "Stop recording" : "Start speech to text"
+              }
               className={`p-2 cursor-pointer flex items-center justify-center w-8 h-8 rounded-lg border transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed ${
                 isListening
                   ? "bg-red-500/20 text-red-400 border-red-500/30"
